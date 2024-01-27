@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import cx from 'classnames'
 interface CanvasImageSliderProps {
-  images: string[];
+  images: any[];
 }
 const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,11 +47,7 @@ const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
   ) => {
     context.clearRect(0, 0, canvas.width, canvas.height);
     const image = images[position];
-    const img = new Image();
-    img.src = image;
-    img.onload = () => {
-      context.drawImage(img, 0, 0, canvas.width, canvas.height);
-    };
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
   };
 
   useEffect(() => {
