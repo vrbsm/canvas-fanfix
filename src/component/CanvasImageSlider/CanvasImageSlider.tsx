@@ -1,11 +1,40 @@
 import { useEffect, useRef, useState } from "react";
-
+import cx from 'classnames'
 interface CanvasImageSliderProps {
   images: string[];
 }
 const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [position, setPosition] = useState(0);
+  const [coordinateX, setCoordinateX] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleEnd = () => {
+    setIsDragging(false)
+    setCoordinateX(null);
+  };
+
+  const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const value = "touches" in e ? e.touches[0].clientX : e.clientX;
+    setIsDragging(true)
+    setCoordinateX(value);
+  };
+
+  const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (coordinateX !== null) {
+      const value = "touches" in e ? e.touches[0].clientX : e.clientX;
+      const difference = coordinateX - value;
+      if (Math.abs(difference) > 300) {
+        const isRigthToLeft = difference > 0;
+        setPosition((state) =>
+          isRigthToLeft
+            ? Math.min(state + 1, images.length - 1)
+            : Math.max(state - 1, 0)
+        );
+        setCoordinateX(value);
+      }
+    }
+  };
 
   const handleSliderChange = (e: any) => {
     const newPosition = e.target.value;
@@ -17,7 +46,6 @@ const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
     canvas: HTMLCanvasElement
   ) => {
     context.clearRect(0, 0, canvas.width, canvas.height);
-    // Load this at the beginning of the app, move
     const image = images[position];
     const img = new Image();
     img.src = image;
@@ -30,14 +58,12 @@ const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
     const canvas = canvasRef.current as unknown as HTMLCanvasElement;
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
     drawImages(context, canvas);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images, position]);
-  
+
   return (
     <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-      }}
+      className="flex flex-col"
     >
       <input
         type="range"
@@ -49,8 +75,16 @@ const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
       <canvas
         data-testid="canvas-img-slider"
         ref={canvasRef}
-        width="640"
-        height="400"
+        height={600}
+        width={400}
+        className={cx({ "cursor-grabbing" : isDragging }, "cursor-grab w-80 h-80 sm:w-[640px] sm:h-[400px]")}
+        onMouseDown={handleStart}
+        onMouseUp={handleEnd}
+        onMouseOut={handleEnd}
+        onMouseMove={handleMove}
+        onTouchStart={handleStart}
+        onTouchMove={handleMove}
+        onTouchEnd={handleEnd}
       ></canvas>
     </div>
   );

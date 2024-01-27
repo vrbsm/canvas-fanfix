@@ -11,18 +11,9 @@ function App() {
   return (
     <div>
       <header>
-        <b>Welcome to my Canvas Image Slider</b>
+        <b>Fanfix challenge</b>
       </header>
-      <div
-        style={{
-          height: "500px",
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "whitesmoke",
-        }}
-      >
+      <div className="h-[500px] w-full flex items-center justify-center bg-[whitesmoke]">
         <CanvasImageSlider images={images} />
       </div>
     </div>
