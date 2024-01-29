@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CanvasImageSlider from "./component/CanvasImageSlider/CanvasImageSlider";
 
 function App() {
   const [images, setImages] = useState<any[] | null>(null)
+  const [highestImage, setHighestImage] = useState(0)
   
   const urls = [
     "/images/image-1.png",
@@ -23,7 +24,8 @@ function App() {
   useEffect(() => {
     const loadImages = async () => {
       const promises = urls.map((item) => loadImage(item))
-      const loadedImages = await Promise.all(promises)
+      const loadedImages = await Promise.all(promises) as HTMLImageElement[]
+      setHighestImage(loadedImages.reduce((accumulator, currentValue) =>  Math.max(currentValue.height, accumulator), 0))
       setImages(loadedImages)
     }
     loadImages()
@@ -35,8 +37,8 @@ function App() {
       <header>
         <b className="p-10">Fanfix challenge</b>
       </header>
-      <div className="h-[500px] w-full flex items-center justify-center bg-[whitesmoke]">
-        { images && <CanvasImageSlider images={images} />}
+      <div className="h-[500px] w-full flex items-center justify-center">
+        { images && <CanvasImageSlider images={images} height={highestImage} />}
       </div>
     </div>
   );

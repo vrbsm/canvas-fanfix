@@ -1,44 +1,36 @@
 import { useEffect, useRef, useState } from "react";
-import cx from 'classnames'
+import cx from "classnames";
 interface CanvasImageSliderProps {
   images: any[];
+  height: number;
 }
-const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
+const CanvasImageSlider = ({ images, height }: CanvasImageSliderProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [position, setPosition] = useState(0);
   const [coordinateX, setCoordinateX] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [imagesOffset, setImagesOffset] = useState(0);
+  const imageWidth = 400;
+  const imageGap = 10;
 
   const handleEnd = () => {
-    setIsDragging(false)
-    setCoordinateX(null);
+    setIsDragging(false);
   };
 
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
-    const value = "touches" in e ? e.touches[0].clientX : e.clientX;
-    setIsDragging(true)
+    const value = "touches" in e ? e.touches[0].screenX : e.screenX;
+    setIsDragging(true);
     setCoordinateX(value);
   };
 
   const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (coordinateX !== null) {
-      const value = "touches" in e ? e.touches[0].clientX : e.clientX;
-      const difference = coordinateX - value;
-      if (Math.abs(difference) > 300) {
-        const isRigthToLeft = difference > 0;
-        setPosition((state) =>
-          isRigthToLeft
-            ? Math.min(state + 1, images.length - 1)
-            : Math.max(state - 1, 0)
-        );
-        setCoordinateX(value);
-      }
+    if (coordinateX !== null && isDragging) {
+      const value = "touches" in e ? e.touches[0].screenX : e.screenX;
+      const newOffsetX = value - coordinateX;
+      const newImagesOffset = imagesOffset + newOffsetX;
+      const maxOffset = -((images.length - 1) * (imageWidth + imageGap));
+      setImagesOffset(Math.max(maxOffset, Math.min(0,newImagesOffset)));
+      setCoordinateX(value);
     }
-  };
-
-  const handleSliderChange = (e: any) => {
-    const newPosition = e.target.value;
-    setPosition(newPosition);
   };
 
   const drawImages = (
@@ -46,8 +38,11 @@ const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
     canvas: HTMLCanvasElement
   ) => {
     context.clearRect(0, 0, canvas.width, canvas.height);
-    const image = images[position];
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    images.forEach((image, index) => {
+      const x = index * (imageWidth + imageGap) + imagesOffset;
+      context.drawImage(image, x, 0, imageWidth, image.height);
+    });
   };
 
   useEffect(() => {
@@ -55,25 +50,19 @@ const CanvasImageSlider = ({ images }: CanvasImageSliderProps) => {
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
     drawImages(context, canvas);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [images, position]);
+  }, [images, coordinateX]);
 
   return (
-    <div
-      className="flex flex-col"
-    >
-      <input
-        type="range"
-        min="0"
-        max={images.length - 1}
-        value={position}
-        onChange={handleSliderChange}
-      />
+    <div className="flex flex-col">
       <canvas
         data-testid="canvas-img-slider"
         ref={canvasRef}
-        height={600}
+        height={height}
         width={400}
-        className={cx({ "cursor-grabbing" : isDragging }, "cursor-grab w-80 h-80 sm:w-[640px] sm:h-[400px]")}
+        className={cx(
+          { "cursor-grabbing": isDragging },
+          "cursor-grab bg-[whitesmoke]"
+        )}
         onMouseDown={handleStart}
         onMouseUp={handleEnd}
         onMouseOut={handleEnd}
