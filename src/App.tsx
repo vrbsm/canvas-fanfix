@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import CanvasImageSlider from "./component/CanvasImageSlider/CanvasImageSlider";
 
 function App() {
@@ -10,6 +10,7 @@ function App() {
     "/images/image-2.png",
     "/images/image-3.png",
     "/images/image-4.png",
+    "/images/image-5.png",
   ];
 
   const loadImage = (url: string) => {
